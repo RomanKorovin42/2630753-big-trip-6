@@ -12,5 +12,22 @@ const types = [
 
 const cities = ['Amsterdam', 'Chamonix', 'Geneva'];
 
+const UpdateType = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR'
+};
 
-export {types, cities};
+const SortType = {
+  TIME: 'sort-time',
+  PRICE: 'sort-price',
+  DATE: 'sort-day'
+};
+
+const UserActionType = {
+  ADD: 'ADD',
+  DELETE: 'DELETE',
+  UPDATE: 'UPDATE'
+};
+
+export {types, cities, UpdateType, SortType, UserActionType};

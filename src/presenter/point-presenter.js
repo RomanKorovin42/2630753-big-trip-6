@@ -1,6 +1,7 @@
 import createEvent from '../view/event-point-view';
 import createEventEdit from '../view/event-edit-view.js';
 import {render, replace, remove} from '../framework/render.js';
+import { UserActionType, UpdateType } from '../const.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -8,17 +9,17 @@ const Mode = {
 };
 
 export default class PointPresenter {
-  #changeFavouriteHandler = null;
   #closeAllEditsHandler = null;
   #mode = Mode.DEFAULT;
   #event = null;
   #eventItem = null;
   #eventEditItem = null;
   #eventsList = null;
+  #dataChangeHandler = null;
 
-  constructor(changeFavouriteHandler, closeAllEditsHandler, eventsList){
-    this.#changeFavouriteHandler = changeFavouriteHandler;
+  constructor(closeAllEditsHandler, dataChangeHandler, eventsList){
     this.#closeAllEditsHandler = closeAllEditsHandler;
+    this.#dataChangeHandler = dataChangeHandler;
     this.#eventsList = eventsList;
   }
 
@@ -37,21 +38,13 @@ export default class PointPresenter {
 
     this.#eventEditItem = new createEventEdit({
       event: this.#event,
-      onFormSubmit: () => {
-        this.#replaceFormToCard();
-      }
+      onFormSubmit: this.#onSubmitButtonClickHandler,
+      onDeleteClick: this.#handleDeleteClick,
+      onCloseAction: this.#onFormCloseHandler
     });
 
     if (previosEventItem === null || previosEventEditItem === null) {
       render(this.#eventItem, this.#eventsList);
-
-      const favoritesList = document.querySelectorAll('.event__favorite-btn');
-      const favoritesLastElement = favoritesList[favoritesList.length - 1];
-
-      favoritesLastElement.addEventListener('click', () => {
-        this.#changeFavouriteHandler(favoritesLastElement);
-      });
-
       return;
     }
 
@@ -76,6 +69,20 @@ export default class PointPresenter {
     }
   };
 
+  #onSubmitButtonClickHandler = (update) => {
+    this.#dataChangeHandler(
+      UserActionType.UPDATE,
+      UpdateType.MINOR,
+      update
+    );
+
+    this.#replaceFormToCard();
+  };
+
+  #onFormCloseHandler = () =>{
+    this.#replaceFormToCard();
+  };
+
   #replaceCardToForm() {
     replace(this.#eventEditItem, this.#eventItem);
     document.addEventListener('keydown', this.#escKeyDownHandler);
@@ -89,10 +96,22 @@ export default class PointPresenter {
     this.#mode = Mode.DEFAULT;
   }
 
+  #handleDeleteClick = (point) =>{
+    this.#dataChangeHandler(
+      UserActionType.DELETE,
+      UpdateType.MINOR,
+      point
+    );
+  };
+
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
       this.#replaceFormToCard();
     }
   }
 
+  destroy = () => {
+    remove(this.#eventItem);
+    remove(this.#eventEditItem);
+  };
 }

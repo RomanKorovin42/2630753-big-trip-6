@@ -1,5 +1,6 @@
-import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { offersType } from '../mock/offers.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view';
+import { getTimeDifference } from '../utils';
+import { offersType } from '../mock/offers';
 import he from 'he';
 
 function offersTemplate(offers){
@@ -16,7 +17,7 @@ function offersTemplate(offers){
     </div>`).join('');
 }
 
-function eventEditTemplate(event){
+function newPointTemplate(event){
   const {eventType, city, price, offers, startTime, endTime} = event;
   let description;
   let photoList;
@@ -47,7 +48,8 @@ function eventEditTemplate(event){
     photoList = '';
   }
 
-  return `<form class="event event--edit" action="#" method="post">
+  return `
+    <form class="event event--edit" action="#" method="post">
                 <header class="event__header">
                   <div class="event__type-wrapper">
                     <label class="event__type  event__type-btn" for="event-type-toggle-1">
@@ -61,7 +63,7 @@ function eventEditTemplate(event){
                         <legend class="visually-hidden">Event type</legend>
 
                         <div class="event__type-item">
-                          <input id="event-type-taxi-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="taxi" ${eventType === 'taxi' ? 'checked' : ''}>
+                          <input id="event-type-taxi-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="taxi"  ${eventType === 'taxi' ? 'checked' : ''}>
                           <label class="event__type-label  event__type-label--taxi" for="event-type-taxi-1">Taxi</label>
                         </div>
 
@@ -112,7 +114,7 @@ function eventEditTemplate(event){
                     <label class="event__label  event__type-output" for="event-destination-1">
                       ${eventType}
                     </label>
-                    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(city ? `${city}` : '')}" list="destination-list-1">
+                    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(`${city}`)}" list="destination-list-1">
                     <datalist id="destination-list-1">
                       <option value="Amsterdam"></option>
                       <option value="Geneva"></option>
@@ -138,9 +140,6 @@ function eventEditTemplate(event){
 
                   <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
                   <button class="event__reset-btn" type="reset">Cancel</button>
-                  <button class="event__rollup-btn" type="button">
-                    <span class="visually-hidden">Open event</span>
-                  </button>
                 </header>
                 <section class="event__details">
                   <section class="event__section  event__section--offers">
@@ -162,64 +161,72 @@ function eventEditTemplate(event){
                     </div>
                   </section>
                 </section>
-              </form>`;
+              </form>
+  `;
 }
 
 
-export default class createEventEdit extends AbstractStatefulView{
-  #event = null;
-  #handleFormSubmit = null;
-  #handleFormClose = null;
-  #handleDeleteClick = null;
+export default class createNewEvent extends AbstractStatefulView{
+  #onFormSubmit = null;
+  #onDeleteClick = null;
 
-  constructor({event, onFormSubmit, onDeleteClick, onCloseAction}){
+  constructor({onDeleteClick, onFormSubmit}){
     super();
-    this.#event = event;
-    this._setState(createEventEdit.parseEventToState(event));
 
-    this.#handleFormSubmit = onFormSubmit;
-    this.#handleDeleteClick = onDeleteClick;
-    this.#handleFormClose = onCloseAction;
+    this._setState({
+      dueDate: '2027-01-21',
+      eventType: 'flight',
+      city: 'Amsterdam',
+      price: 20,
+      startTime: '00:00',
+      endTime: '00:00',
+      timeDifference: getTimeDifference('00:00', '00:00'),
+      offers:   {
+        eventType: 'flight',
+        offersForType: [
+          {
+            offerTitle: 'Flight 1',
+            price: '340'
+          },
+          {
+            offerTitle: 'Flight 2',
+            price: '140'
+          }
+        ]
+      }
+    });
+
+    this.#onFormSubmit = onFormSubmit;
+    this.#onDeleteClick = onDeleteClick;
 
     this.element.addEventListener('submit', this.#formSubmitHandler);
-    this.element.querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#handleFormClose);
-    this.element.querySelector('.event__type-group')
-      .addEventListener('change', this.#typeChangeHandler);
-    this.element.querySelector('.event__input--destination')
-      .addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__reset-btn')
       .addEventListener('click', this.#onDeleteClickHandler);
+    this.element.querySelector('.event__input--destination')
+      .addEventListener('change', this.#destinationChangeHandler);
+    this.element.querySelector('.event__type-group')
+      .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
+
+    this._restoreHandlers();
   }
 
   _restoreHandlers(){
     this.element.addEventListener('submit', this.#formSubmitHandler);
-    this.element.querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#handleFormClose);
-    this.element.querySelector('.event__type-group')
-      .addEventListener('change', this.#typeChangeHandler);
-    this.element.querySelector('.event__input--destination')
-      .addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__reset-btn')
       .addEventListener('click', this.#onDeleteClickHandler);
+    this.element.querySelector('.event__input--destination')
+      .addEventListener('change', this.#destinationChangeHandler);
+    this.element.querySelector('.event__type-group')
+      .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
   }
 
-  get template(){
-    return eventEditTemplate(this._state);
-  }
-
-  #formSubmitHandler = (evt) => {
+  #onDeleteClickHandler = (evt) =>{
     evt.preventDefault();
-    this.#handleFormSubmit(createEventEdit.parseStateToEvent(this._state));
-  };
-
-  #onDeleteClickHandler = (evt) => {
-    evt.preventDefault();
-    this.#handleDeleteClick(this._state);
+    this.#onDeleteClick();
   };
 
   #destinationChangeHandler = (evt) => {
@@ -246,6 +253,19 @@ export default class createEventEdit extends AbstractStatefulView{
       offers: offersType.find((offer) => offer.eventType === typeTarget)
     });
   };
+
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    const normalizedPrice = Number(this._state.price);
+    this.#onFormSubmit({
+      ...this._state,
+      price: Number.isFinite(normalizedPrice) && normalizedPrice > 0 ? Math.trunc(normalizedPrice) : 0
+    });
+  };
+
+  get template(){
+    return newPointTemplate(this._state);
+  }
 
   static parseEventToState(event) {
     return {...event,
