@@ -13,9 +13,7 @@ function getTemplate(){
     text = 'There are no present events now';
   }
 
-  return `<section class="trip-events">
-          <h2 class="visually-hidden">Trip events</h2>
-
+  return `
           <p class="trip-events__msg">${text}</p>
 
           <!--
@@ -25,7 +23,7 @@ function getTemplate(){
               * Present — 'There are no present events now';
               * Future — 'There are no future events now'.
           -->
-        </section>`;
+        `;
 }
 
 export default class createSuggestionMessage extends AbstractStatefulView{

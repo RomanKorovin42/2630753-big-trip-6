@@ -1,9 +1,11 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
-function tripSortTemplate(){
+function tripSortTemplate(currentSortType){
+
+
   return `          <form class="trip-events__trip-sort  trip-sort" action="#" method="get">
             <div class="trip-sort__item  trip-sort__item--day">
-              <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-day" checked>
+              <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-day" ${currentSortType === 'sort-day' ? 'checked' : ''} >
               <label class="trip-sort__btn" for="sort-day">Day</label>
             </div>
 
@@ -13,12 +15,12 @@ function tripSortTemplate(){
             </div>
 
             <div class="trip-sort__item  trip-sort__item--time">
-              <input id="sort-time" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-time">
+              <input id="sort-time" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-time" ${currentSortType === 'sort-time' ? 'checked' : ''}>
               <label class="trip-sort__btn" for="sort-time">Time</label>
             </div>
 
             <div class="trip-sort__item  trip-sort__item--price">
-              <input id="sort-price" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-price">
+              <input id="sort-price" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-price" ${currentSortType === 'sort-price' ? 'checked' : ''}>
               <label class="trip-sort__btn" for="sort-price">Price</label>
             </div>
 
@@ -30,7 +32,23 @@ function tripSortTemplate(){
 }
 
 export default class createTripSort extends AbstractStatefulView{
+  #handleSortTypeChange = null;
+  #currentSortType = null;
+
+  constructor({currentSortType, handleSortTypeChange}){
+    super();
+
+    this.#currentSortType = currentSortType;
+    this.#handleSortTypeChange = handleSortTypeChange;
+
+    this.element.addEventListener('change', this.#sortChangeHandler);
+  }
+
+  #sortChangeHandler = (evt) =>{
+    this.#handleSortTypeChange(evt.target.value);
+  };
+
   get template(){
-    return tripSortTemplate();
+    return tripSortTemplate(this.#currentSortType);
   }
 }
