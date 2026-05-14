@@ -16,9 +16,9 @@ function filtersItemTemplate(filter, isChecked){
               `;
 }
 
-function filtersTemplate(filterItems){
+function filtersTemplate(filterItems, currentFilterType){
   const filterItemsTemplate = filterItems
-    .map((filter, index) => filtersItemTemplate(filter, index === 0))
+    .map((filter) => filtersItemTemplate(filter, filter.type === currentFilterType))
     .join('');
 
   return `<form class="trip-filters" action="#" method="get">
@@ -27,15 +27,25 @@ function filtersTemplate(filterItems){
 }
 
 export default class createFilters extends AbstractStatefulView{
-  #filter = null;
+  #filters = null;
+  #currentFilterType = null;
+  #onFilterTypeChange = null;
 
-  constructor({filter}){
+  constructor({filters, currentFilterType, onFilterTypeChange}){
     super();
 
-    this.#filter = filter;
+    this.#filters = filters;
+    this.#currentFilterType = currentFilterType;
+    this.#onFilterTypeChange = onFilterTypeChange;
+
+    this.element.addEventListener('change', this.#handleFilterTypeChange);
   }
 
+  #handleFilterTypeChange = (evt) =>{
+    this.#onFilterTypeChange(evt.target.value);
+  };
+
   get template(){
-    return filtersTemplate(this.#filter);
+    return filtersTemplate(this.#filters, this.#currentFilterType);
   }
 }

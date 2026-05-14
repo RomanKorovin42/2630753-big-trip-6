@@ -1,17 +1,29 @@
 import { humanizeEventDueDate } from '../utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import he from 'he';
+
+function offersTemplate(offers){
+  const {offersForType} = offers;
+
+  return offersForType.map((offer) => `
+                  <li class="event__offer">
+                    <span class="event__offer-title">${offer.offerTitle}</span>
+                    &plus;&euro;&nbsp;
+                    <span class="event__offer-price">${offer.price}</span>
+                  </li>`).join('');
+}
 
 function eventTemplate(event){
-  const {dueDate, eventType, city, price, isFavourite, startTime, endTime, timeDifference} = event;
+  const {dueDate, eventType, city, price, isFavourite, startTime, endTime, timeDifference, offers} = event;
   const humanizeDate = humanizeEventDueDate(dueDate);
 
   return `<li class="trip-events__item">
               <div class="event">
                 <time class="event__date" datetime="${dueDate}">${humanizeDate}</time>
                 <div class="event__type">
-                  <img class="event__type-icon" width="42" height="42" src="img/icons/${eventType.toLowerCase()}.png" alt="Event type icon">
+                  <img class="event__type-icon" width="42" height="42" src="img/icons/${eventType}.png" alt="Event type icon">
                 </div>
-                <h3 class="event__title">${eventType} ${city}</h3>
+                <h3 class="event__title">${eventType} ${he.encode(city ? `${city}` : '')}</h3>
                 <div class="event__schedule">
                   <p class="event__time">
                     <time class="event__start-time" datetime="${dueDate}T${startTime}">${startTime}</time>
@@ -25,11 +37,7 @@ function eventTemplate(event){
                 </p>
                 <h4 class="visually-hidden">Offers:</h4>
                 <ul class="event__selected-offers">
-                  <li class="event__offer">
-                    <span class="event__offer-title">Order Uber</span>
-                    &plus;&euro;&nbsp;
-                    <span class="event__offer-price">20</span>
-                  </li>
+                  ${offersTemplate(offers)}
                 </ul>
                 <button class="event__favorite-btn ${isFavourite ? 'event__favorite-btn--active' : ''}" type="button">
                   <span class="visually-hidden">Add to favorite</span>
@@ -54,6 +62,15 @@ export default class createEvent extends AbstractStatefulView{
 
     this.#handleEditClick = onEditClick;
 
+    this.element.querySelector('.event__favorite-btn')
+      .addEventListener('click', this.#onChangeFavourite);
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#editClickHandler);
+  }
+
+  _restoreHandlers(){
+    this.element.querySelector('.event__favorite-btn')
+      .addEventListener('click', this.#onChangeFavourite);
     this.element.querySelector('.event__rollup-btn')
       .addEventListener('click', this.#editClickHandler);
   }
@@ -61,6 +78,14 @@ export default class createEvent extends AbstractStatefulView{
   get template(){
     return eventTemplate(this.#event);
   }
+
+  #onChangeFavourite = (evt) =>{
+    evt.preventDefault();
+    this.#event.isFavourite = !this.#event.isFavourite;
+    this.updateElement({
+      isFavourite: !this.#event.isFavourite
+    });
+  };
 
   #editClickHandler = (evt) => {
     evt.preventDefault();

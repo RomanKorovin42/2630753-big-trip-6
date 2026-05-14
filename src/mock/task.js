@@ -1,9 +1,11 @@
 import { types, cities } from '../const';
 import { getRandomArrayElement, getTimeDifference } from '../utils';
 import { offersType } from './offers';
+import { nanoid } from 'nanoid';
 
 
 const destinationtPoints = [{
+  id: nanoid(),
   dueDate: '2019-04-13',
   eventType: getRandomArrayElement(types),
   city: getRandomArrayElement(cities),
@@ -15,6 +17,7 @@ const destinationtPoints = [{
 },
 
 {
+  id: nanoid(),
   dueDate: '2019-03-18',
   eventType: getRandomArrayElement(types),
   city: getRandomArrayElement(cities),
@@ -26,6 +29,7 @@ const destinationtPoints = [{
 },
 
 {
+  id: nanoid(),
   dueDate: '2019-05-08',
   eventType: getRandomArrayElement(types),
   city: getRandomArrayElement(cities),
@@ -37,6 +41,7 @@ const destinationtPoints = [{
 },
 
 {
+  id: nanoid(),
   dueDate: '2026-08-21',
   eventType: getRandomArrayElement(types),
   city: getRandomArrayElement(cities),
@@ -48,6 +53,7 @@ const destinationtPoints = [{
 },
 
 {
+  id: nanoid(),
   dueDate: '2027-01-21',
   eventType: getRandomArrayElement(types),
   city: getRandomArrayElement(cities),

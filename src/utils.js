@@ -30,4 +30,23 @@ function getTimeDifference(start, end){
 
 }
 
-export {getRandomArrayElement, humanizeEventDueDate, getTimeDifference, getCurrentDate};
+function getTimeDifferenceMinutes(start, end){
+  const startT = start.split(':');
+  const endT = end.split(':');
+
+  return (Number(endT[0]) - Number(startT[0])) * 60 + (Number(endT[1]) - Number(startT[1]));
+}
+
+function isDatesEqual (dateA, dateB) {
+  if (!dateA && !dateB) {
+    return true;
+  }
+
+  if (!dateA || !dateB) {
+    return false;
+  }
+
+  return new Date(dateA).getTime() === new Date(dateB).getTime();
+}
+
+export {getRandomArrayElement, humanizeEventDueDate, getTimeDifference, getTimeDifferenceMinutes, getCurrentDate, isDatesEqual};

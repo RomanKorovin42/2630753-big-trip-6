@@ -1,10 +1,10 @@
 import { isFuturePoint, isPastPoint, isPresentPoint } from './filters-utils';
 
 const filtersTypes = {
-  FUTURE: 'future',
-  PAST: 'past',
   EVERYTHING: 'everything',
-  PRESENT: 'present'
+  FUTURE: 'future',
+  PRESENT: 'present',
+  PAST: 'past'
 };
 
 const filter = {
@@ -14,4 +14,4 @@ const filter = {
   [filtersTypes.PRESENT]: (points) => points.filter((point) => isPresentPoint(point))
 };
 
-export {filter};
+export {filter, filtersTypes};
