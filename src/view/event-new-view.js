@@ -1,7 +1,5 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import he from 'he';
-import dayjs from 'dayjs';
-import { nanoid } from 'nanoid';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -21,17 +19,15 @@ function getOffersTemplate(offerElements, event){
     </div>`).join('');
 }
 
-function getNewPointTemplate(event, offersArr, destinationsArr){
-  const {type, basePrice, dateFrom, dateTo, isDeleting, isSaving, isDisabled} = event;
+function getDestinationOptionsTemplate(destinations){
+  return destinations.map((destination) => `<option value="${destination.name}"></option>`).join('');
+}
 
-  const offerElements = offersArr[type].filter((offer) => event.offers.some((e) => e === offer.id));
-  const destinationData = destinationsArr.find((d) => d.id === event.destination);
+function getNewPointTemplate(event, offers, destinations){
+  const {type, basePrice, isDeleting, isSaving, isDisabled} = event;
 
-  const startTime = dayjs(dateFrom).format('HH:mm');
-  const endTime = dayjs(dateTo).format('HH:mm');
-
-  const startDate = dayjs(dateFrom).format('DD/MM/YY');
-  const endDate = dayjs(dateTo).format('DD/MM/YY');
+  const offerElements = offers[type].filter((offer) => event.offers.some((eventOffersElement) => eventOffersElement === offer.id));
+  const destinationData = destinations.find((destinationElement) => destinationElement.id === event.destination);
 
   return `
     <form class="event event--edit" action="#" method="post">
@@ -101,18 +97,16 @@ function getNewPointTemplate(event, offersArr, destinationsArr){
                     </label>
                     <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(destinationData ? `${destinationData.name}` : '')}" list="destination-list-1" required>
                     <datalist id="destination-list-1">
-                      <option value="Amsterdam"></option>
-                      <option value="Geneva"></option>
-                      <option value="Chamonix"></option>
+                      ${getDestinationOptionsTemplate(destinations)}
                     </datalist>
                   </div>
 
                   <div class="event__field-group  event__field-group--time">
                     <label class="visually-hidden" for="event-start-time-1">From</label>
-                    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${startDate} ${startTime}" required>
+                    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="" required>
                     &mdash;
                     <label class="visually-hidden" for="event-end-time-1">To</label>
-                    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${endDate} ${endTime}" required>
+                    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="" required>
                   </div>
 
                   <div class="event__field-group  event__field-group--price">
@@ -120,7 +114,7 @@ function getNewPointTemplate(event, offersArr, destinationsArr){
                       <span class="visually-hidden">Price</span>
                       &euro;
                     </label>
-                    <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${basePrice}" required>
+                    <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" min="1" max="100000" value="${basePrice}" required>
                   </div>
 
                   <button class="event__save-btn  btn  btn--blue" type="submit">${isSaving ? 'Saving...' : 'Save'}</button>
@@ -131,7 +125,7 @@ function getNewPointTemplate(event, offersArr, destinationsArr){
                     <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
                     <div class="event__available-offers">
-                      ${offerElements ? getOffersTemplate(offersArr[type], event) : ''}
+                      ${offerElements ? getOffersTemplate(offers[type], event) : ''}
                     </div>
                   </section>
 
@@ -165,12 +159,9 @@ export default class CreateNewEvent extends AbstractStatefulView{
     this.#destinations = destinations;
 
     this._setState({
-      id: nanoid(),
       type: 'flight',
       destination: [],
-      basePrice: 1,
-      dateFrom: '2026-01-01T02:15:05.620Z',
-      dateTo: '2026-01-01T02:15:05.620Z',
+      basePrice: 0,
       isFavorite: false,
       offers: []
     });
@@ -219,10 +210,13 @@ export default class CreateNewEvent extends AbstractStatefulView{
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
     const destinationTarget = evt.target.value;
-    const newDestination = this.#destinations.find((d) => d.name === destinationTarget);
-    this.updateElement({
-      destination: newDestination.id
-    });
+    const newDestination = this.#destinations.find((destination) => destination.name === destinationTarget);
+
+    if(newDestination){
+      this.updateElement({
+        destination: newDestination.id
+      });
+    }
   };
 
   #priceChangeHandler = (evt) => {
@@ -244,11 +238,14 @@ export default class CreateNewEvent extends AbstractStatefulView{
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    const normalizedPrice = Number(this._state.basePrice);
-    this.#onFormSubmit({
-      ...this._state,
-      basePrice: Number.isFinite(normalizedPrice) && normalizedPrice > 0 ? Math.trunc(normalizedPrice) : 0
-    });
+
+    if(this._state.basePrice < 1 || !this._state.dateTo || !this._state.dateFrom){
+      this.shake();
+      return;
+    }
+
+    this.#onFormSubmit(this._state);
+    this.#onDeleteClick();
   };
 
   #startDateChangeHandler = ([date]) =>{

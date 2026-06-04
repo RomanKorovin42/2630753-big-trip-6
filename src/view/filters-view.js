@@ -41,11 +41,11 @@ export default class CreateFilters extends AbstractStatefulView{
     this.element.addEventListener('change', this.#handleFilterTypeChange);
   }
 
-  #handleFilterTypeChange = (evt) =>{
-    this.#onFilterTypeChange(evt.target.value);
-  };
-
   get template(){
     return getFiltersTemplate(this.#filters, this.#currentFilterType);
   }
+
+  #handleFilterTypeChange = (evt) =>{
+    this.#onFilterTypeChange(evt.target.value);
+  };
 }

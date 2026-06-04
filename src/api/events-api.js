@@ -30,7 +30,7 @@ export default class EventsApi extends ApiService {
     const response = await this._load({
       url: 'points',
       method: MethodType.POST,
-      body: JSON.stringify(this.#adaptToServer(point)),
+      body: JSON.stringify(this.#adaptNewToServer(point)),
       headers: new Headers({'Content-Type': 'application/json'}),
     });
 
@@ -47,6 +47,18 @@ export default class EventsApi extends ApiService {
   #adaptToServer(point) {
     return {
       'id': point.id,
+      'base_price': point.basePrice,
+      'date_from': point.dateFrom,
+      'date_to': point.dateTo,
+      'destination': point.destination,
+      'is_favorite': point.isFavorite,
+      'offers': point.offers,
+      'type': point.type,
+    };
+  }
+
+  #adaptNewToServer(point) {
+    return {
       'base_price': point.basePrice,
       'date_from': point.dateFrom,
       'date_to': point.dateTo,

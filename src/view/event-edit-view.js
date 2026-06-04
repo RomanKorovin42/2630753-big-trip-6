@@ -6,7 +6,6 @@ import 'flatpickr/dist/flatpickr.min.css';
 
 function getPhotosTemplate(destinationData){
   return destinationData.pictures.map((picture) => `<img src="${picture.src}" alt="${picture.description}">`).join('');
-
 }
 
 function getOffersTemplate(offerElements, event){
@@ -21,11 +20,14 @@ function getOffersTemplate(offerElements, event){
     </div>`).join('');
 }
 
-function getEventEditTemplate(event, offersArr, destinationsArr){
-  const {type, basePrice, dateFrom, dateTo, isSaving, isDeleting, isDisabled} = event;
+function getDestinationOptionsTemplate(destinations){
+  return destinations.map((destination) => `<option value="${destination.name}"></option>`).join('');
+}
 
-  const offerElements = offersArr[type].filter((offer) => event.offers.some((e) => e === offer.id));
-  const destinationData = destinationsArr.find((d) => d.id === event.destination);
+function getEventEditTemplate(event, offers, destinations){
+  const {type, basePrice, dateFrom, dateTo, isSaving, isDeleting, isDisabled} = event;
+  const offerElements = offers[type].filter((offer) => event.offers.some((eventOffersElement) => eventOffersElement === offer.id));
+  const destinationData = destinations.find((destinationElement) => destinationElement.id === event.destination);
 
   const startTime = dayjs(dateFrom).format('HH:mm');
   const endTime = dayjs(dateTo).format('HH:mm');
@@ -100,9 +102,7 @@ function getEventEditTemplate(event, offersArr, destinationsArr){
                     </label>
                     <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(destinationData ? `${destinationData.name}` : '')}" list="destination-list-1" required>
                     <datalist id="destination-list-1">
-                      <option value="Amsterdam"></option>
-                      <option value="Geneva"></option>
-                      <option value="Chamonix"></option>
+                      ${getDestinationOptionsTemplate(destinations)}
                     </datalist>
                   </div>
 
@@ -133,7 +133,7 @@ function getEventEditTemplate(event, offersArr, destinationsArr){
                     <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
                     <div class="event__available-offers">
-                      ${offerElements ? getOffersTemplate(offersArr[type], event) : ''}
+                      ${offerElements ? getOffersTemplate(offers[type], event) : ''}
                     </div>
                   </section>
 
@@ -167,7 +167,7 @@ export default class CreateEventEdit extends AbstractStatefulView{
     this.#event = event;
     this.#offers = offers;
     this.#destinations = destinations;
-    this._setState(CreateEventEdit .parseEventToState(event));
+    this._setState(CreateEventEdit.parseEventToState(event));
 
     this.#handleFormSubmit = onFormSubmit;
     this.#handleDeleteClick = onDeleteClick;
@@ -190,6 +190,10 @@ export default class CreateEventEdit extends AbstractStatefulView{
     this._restoreHandlers();
   }
 
+  get template(){
+    return getEventEditTemplate(this._state, this.#offers, this.#destinations);
+  }
+
   _restoreHandlers(){
     this.element.addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__rollup-btn')
@@ -206,13 +210,15 @@ export default class CreateEventEdit extends AbstractStatefulView{
     this.#setDatepickerEnd();
   }
 
-  get template(){
-    return getEventEditTemplate(this._state, this.#offers, this.#destinations);
-  }
-
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit(CreateEventEdit .parseStateToEvent(this._state));
+
+    if(this._state.basePrice < 1 || !this._state.dateTo || !this._state.dateFrom){
+      this.shake();
+      return;
+    }
+
+    this.#handleFormSubmit(CreateEventEdit.parseStateToEvent(this._state));
   };
 
   #onDeleteClickHandler = (evt) => {
@@ -223,10 +229,13 @@ export default class CreateEventEdit extends AbstractStatefulView{
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
     const destinationTarget = evt.target.value;
-    const newDestination = this.#destinations.find((d) => d.name === destinationTarget);
-    this.updateElement({
-      destination: newDestination.id
-    });
+    const newDestination = this.#destinations.find((destination) => destination.name === destinationTarget);
+
+    if(newDestination){
+      this.updateElement({
+        destination: newDestination.id
+      });
+    }
   };
 
   #priceChangeHandler = (evt) => {

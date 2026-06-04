@@ -44,11 +44,11 @@ export default class CreateTripSort extends AbstractStatefulView{
     this.element.addEventListener('change', this.#sortChangeHandler);
   }
 
-  #sortChangeHandler = (evt) =>{
-    this.#handleSortTypeChange(evt.target.value);
-  };
-
   get template(){
     return getTripSortTemplate(this.#currentSortType);
   }
+
+  #sortChangeHandler = (evt) =>{
+    this.#handleSortTypeChange(evt.target.value);
+  };
 }

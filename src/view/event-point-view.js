@@ -84,15 +84,15 @@ export default class CreateEvent extends AbstractStatefulView{
       .addEventListener('click', this.#editClickHandler);
   }
 
+  get template(){
+    return getEventTemplate(this.#event, this.#offers, this.#destinations);
+  }
+
   _restoreHandlers(){
     this.element.querySelector('.event__favorite-btn')
       .addEventListener('click', this.#onChangeFavourite);
     this.element.querySelector('.event__rollup-btn')
       .addEventListener('click', this.#editClickHandler);
-  }
-
-  get template(){
-    return getEventTemplate(this.#event, this.#offers, this.#destinations);
   }
 
   #onChangeFavourite = () =>{

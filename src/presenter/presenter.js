@@ -97,7 +97,6 @@ export default class TripPresenter{
     const eventsList = document.querySelector('.trip-events__list');
     this.#newEvent = new NewPointPresenter(eventsList, this.offers, this.destinations, this.#handleViewAction, this.#switchNewEnableButton);
 
-
     this.#newEvent.init();
     newEventButton.disabled = true;
   };
