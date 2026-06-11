@@ -8,10 +8,10 @@ function getPhotosTemplate(destinationData){
 }
 
 function getOffersTemplate(offerElements, event){
-  return offerElements.map((offer, idx) => `
+  return offerElements.map((offer) => `
     <div class="event__offer-selector">
-      <input class="event__offer-checkbox visually-hidden" id="event-offer-${idx}" type="checkbox" name="event-offer-${idx}" ${event.offers.includes(offer.id) ? 'checked' : ''}>
-      <label class="event__offer-label" for="event-offer-${idx}">
+      <input class="event__offer-checkbox visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer-${offer.id}" ${event.offers.includes(offer.id) ? 'checked' : ''} value="${offer.id}">
+      <label class="event__offer-label" for="event-offer-${offer.id}">
         <span class="event__offer-title">${offer.title}</span>
         &plus;&euro;&nbsp;
         <span class="event__offer-price">${offer.price}</span>
@@ -117,7 +117,7 @@ function getNewPointTemplate(event, offers, destinations){
                     <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" min="1" max="100000" value="${basePrice}" required>
                   </div>
 
-                  <button class="event__save-btn  btn  btn--blue" type="submit">${isSaving ? 'Saving...' : 'Save'}</button>
+                  <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
                   <button class="event__reset-btn" type="reset" ${isDeleting ? 'disabled' : ''}>Cancel</button>
                 </header>
                 <section class="event__details">
@@ -178,6 +178,8 @@ export default class CreateNewEvent extends AbstractStatefulView{
       .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
+    this.element.querySelector('.event__available-offers')
+      .addEventListener('change', this.#offersAmountChangeHandler);
     this.#setDatepickerStart();
     this.#setDatepickerEnd();
 
@@ -198,6 +200,8 @@ export default class CreateNewEvent extends AbstractStatefulView{
       .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
+    this.element.querySelector('.event__available-offers')
+      .addEventListener('change', this.#offersAmountChangeHandler);
     this.#setDatepickerStart();
     this.#setDatepickerEnd();
   }
@@ -239,13 +243,12 @@ export default class CreateNewEvent extends AbstractStatefulView{
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
 
-    if(this._state.basePrice < 1 || !this._state.dateTo || !this._state.dateFrom){
+    if(this._state.basePrice < 1 || !this._state.dateTo || !this._state.dateFrom || (this._state.dateFrom >= this._state.dateTo)){
       this.shake();
       return;
     }
 
     this.#onFormSubmit(this._state);
-    this.#onDeleteClick();
   };
 
   #startDateChangeHandler = ([date]) =>{
@@ -281,6 +284,21 @@ export default class CreateNewEvent extends AbstractStatefulView{
         minDate: this._state.dateFrom,
       }
     );
+  };
+
+  #offersAmountChangeHandler = (evt) => {
+    evt.preventDefault();
+    const pickedOffer = evt.target.value;
+
+    if (!this._state.offers.includes(pickedOffer)){
+      this._setState({
+        offers: [...this._state.offers, pickedOffer]
+      });
+    } else {
+      this._setState({
+        offers: this._state.offers.filter((offer) => offer !== pickedOffer)
+      });
+    }
   };
 
   static parseEventToState(event) {

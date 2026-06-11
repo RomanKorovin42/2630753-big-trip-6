@@ -84,8 +84,6 @@ export default class PointPresenter {
       UpdateType.MINOR,
       update
     );
-
-    this.#replaceFormToCard();
   };
 
   #onFormCloseHandler = () =>{

@@ -112,7 +112,6 @@ export default class TripPresenter{
   #handleModelEvent = (updateType, data) => {
     switch(updateType){
       case UpdateType.PATCH:
-        remove(this.#eventsList);
         this.#pointPresenters.get(data.id).init(data);
         break;
       case UpdateType.MINOR:
@@ -157,6 +156,7 @@ export default class TripPresenter{
         this.#newEvent.setSaving();
         try {
           await this.#pointsModel.addPoint(updateType, update);
+          this.#newEvent.destroy();
         } catch(err) {
           this.#newEvent.setAborting();
         }

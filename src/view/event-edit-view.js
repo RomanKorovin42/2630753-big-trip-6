@@ -9,10 +9,10 @@ function getPhotosTemplate(destinationData){
 }
 
 function getOffersTemplate(offerElements, event){
-  return offerElements.map((offer, idx) => `
+  return offerElements.map((offer) => `
     <div class="event__offer-selector">
-      <input class="event__offer-checkbox visually-hidden" id="event-offer-${idx}" type="checkbox" name="event-offer-${idx}" ${event.offers.includes(offer.id) ? 'checked' : ''}>
-      <label class="event__offer-label" for="event-offer-${idx}">
+      <input class="event__offer-checkbox visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer-${offer.id}" ${event.offers.includes(offer.id) ? 'checked' : ''} value="${offer.id}">
+      <label class="event__offer-label" for="event-offer-${offer.id}">
         <span class="event__offer-title">${offer.title}</span>
         &plus;&euro;&nbsp;
         <span class="event__offer-price">${offer.price}</span>
@@ -184,6 +184,8 @@ export default class CreateEventEdit extends AbstractStatefulView{
       .addEventListener('click', this.#onDeleteClickHandler);
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
+    this.element.querySelector('.event__available-offers')
+      .addEventListener('change', this.#offersAmountChangeHandler);
     this.#setDatepickerStart();
     this.#setDatepickerEnd();
 
@@ -206,6 +208,8 @@ export default class CreateEventEdit extends AbstractStatefulView{
       .addEventListener('click', this.#onDeleteClickHandler);
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
+    this.element.querySelector('.event__available-offers')
+      .addEventListener('change', this.#offersAmountChangeHandler);
     this.#setDatepickerStart();
     this.#setDatepickerEnd();
   }
@@ -288,6 +292,21 @@ export default class CreateEventEdit extends AbstractStatefulView{
         minDate: this._state.dateFrom,
       }
     );
+  };
+
+  #offersAmountChangeHandler = (evt) => {
+    evt.preventDefault();
+    const pickedOffer = evt.target.value;
+
+    if (!this.#event.offers.includes(pickedOffer)){
+      this._setState({
+        offers: [...this._state.offers, pickedOffer]
+      });
+    } else {
+      this._setState({
+        offers: this._state.offers.filter((offer) => offer !== pickedOffer)
+      });
+    }
   };
 
   static parseEventToState(event) {
