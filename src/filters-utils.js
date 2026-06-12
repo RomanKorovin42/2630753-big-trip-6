@@ -8,7 +8,7 @@ function isFuturePoint(point){
 }
 
 function isPastPoint(point){
-  const date = dayjs(point.dateFrom);
+  const date = dayjs(point.dateTo);
   return dayjs(date).isBefore(getCurrentDate(), 'millisecond');
 }
 
